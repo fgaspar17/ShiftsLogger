@@ -1,113 +1,74 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ShiftsLogger;
 
-namespace ShiftsLogger.Controllers
+namespace ShiftsLogger;
+
+[Route("api/[controller]")]
+[ApiController]
+public class EmployeesController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class EmployeesController : ControllerBase
+    private readonly ShiftContext _context;
+    private readonly EmployeeService _employeeService;
+
+    public EmployeesController(ShiftContext context, EmployeeService employeeService)
     {
-        private readonly ShiftContext _context;
+        _context = context;
+        _employeeService = employeeService;
+    }
 
-        public EmployeesController(ShiftContext context)
+    // GET: api/Employees
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetEmployees()
+    {
+        var employees = await _employeeService.GetEmployees();
+        return new ActionResult<IEnumerable<EmployeeDto>>(employees);
+    }
+
+    // GET: api/Employees/5
+    [HttpGet("{id}")]
+    public async Task<ActionResult<EmployeeDto>> GetEmployee(int id)
+    {
+        var employee = await _employeeService.GetEmployeeById(id);
+
+        if (employee == null)
         {
-            _context = context;
+            return NotFound();
+        }
+        
+        return employee!;
+    }
+
+    // PUT: api/Employees/5
+    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    [HttpPut("{id}")]
+    public async Task<IActionResult> PutEmployee(int id, Employee employee)
+    {
+        if (id != employee.EmployeeId)
+        {
+            return BadRequest();
         }
 
-        // GET: api/Employees
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetEmployees()
-        {
-            return await _context.Employees
-                .Include(e => e.Shifts)
-                .Select(e => EmployeeMapper.MapToDto(e))
-                .ToListAsync();
-        }
+        await _employeeService.UpdateEmployee(employee);
 
-        // GET: api/Employees/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<EmployeeDto>> GetEmployee(int id)
-        {
-            var employee = await _context.Employees
-                .Include(e => e.Shifts)
-                .Where(e => e.EmployeeId == id)
-                .FirstOrDefaultAsync();
+        return NoContent();
+    }
 
-            if (employee == null)
-            {
-                return NotFound();
-            }
+    // POST: api/Employees
+    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    [HttpPost]
+    public async Task<ActionResult<Employee>> PostEmployee(Employee employee)
+    {
+        await _employeeService.InsertEmployee(employee);
 
-            return EmployeeMapper.MapToDto(employee);
-        }
+        return CreatedAtAction(nameof(GetEmployee), new { id = employee.EmployeeId }, employee);
+    }
 
-        // PUT: api/Employees/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutEmployee(int id, Employee employee)
-        {
-            if (id != employee.EmployeeId)
-            {
-                return BadRequest();
-            }
+    // DELETE: api/Employees/5
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteEmployee(int id)
+    {
+        await _employeeService.DeleteEmployeeById(id);
 
-            _context.Entry(employee).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!EmployeeExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Employees
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Employee>> PostEmployee(Employee employee)
-        {
-            _context.Employees.Add(employee);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetEmployee), new { id = employee.EmployeeId }, employee);
-        }
-
-        // DELETE: api/Employees/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEmployee(int id)
-        {
-            var employee = await _context.Employees.FindAsync(id);
-            if (employee == null)
-            {
-                return NotFound();
-            }
-
-            _context.Employees.Remove(employee);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool EmployeeExists(int id)
-        {
-            return _context.Employees.Any(e => e.EmployeeId == id);
-        }
+        return NoContent();
     }
 }

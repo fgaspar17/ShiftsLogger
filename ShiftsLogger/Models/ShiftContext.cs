@@ -7,6 +7,8 @@ public class ShiftContext : DbContext
     public DbSet<Shift> Shifts { get; set; }
     public DbSet<Employee> Employees { get; set; }
 
+    public ShiftContext(DbContextOptions<ShiftContext> options) : base(options) { }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseSqlServer("Server=(localdb)\\shiftslog;Database=ShiftDB;Integrated Security=True;");
