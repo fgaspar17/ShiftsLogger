@@ -35,4 +35,16 @@ public class EmployeeService
 
         await _context.SaveChangesAsync();
     }
+
+    public async Task InsertEmployee(Employee employee)
+    {
+        _context.Employees.Add(employee);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteEmployeeById(int id)
+    {
+        _context.Employees.Remove(employee);
+        await _context.SaveChangesAsync();
+    }
 }
