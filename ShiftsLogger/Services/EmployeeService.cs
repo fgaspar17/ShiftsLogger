@@ -31,9 +31,16 @@ public class EmployeeService
 
     public async Task UpdateEmployee(Employee employee)
     {
-        _context.Entry(employee).State = EntityState.Modified;
+        try
+        {
+            _context.Entry(employee).State = EntityState.Modified;
 
-        await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
     }
 
     public async Task InsertEmployee(Employee employee)
@@ -44,6 +51,7 @@ public class EmployeeService
 
     public async Task DeleteEmployeeById(int id)
     {
+        var employee = await _context.Employees.FindAsync(id);
         _context.Employees.Remove(employee);
         await _context.SaveChangesAsync();
     }

@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ShiftsLogger;
+﻿using Microsoft.AspNetCore.Mvc;
+using ShiftsLogger.Services;
 
 namespace ShiftsLogger.Controllers
 {
@@ -14,44 +8,75 @@ namespace ShiftsLogger.Controllers
     public class ShiftsController : ControllerBase
     {
         private readonly ShiftContext _context;
+        public readonly ShiftService _shiftService;
 
-        public ShiftsController(ShiftContext context)
+        public ShiftsController(ShiftContext context, ShiftService shiftService)
         {
             _context = context;
+            _shiftService = shiftService;
         }
 
-        // TODO: Usar DTOs
-
-        // GET: api/Shifts
+        /// <summary>
+        /// Return a list of Shifts
+        /// </summary>
+        /// <returns> A list of Shifts </returns>
+        /// <remarks>
+        /// 
+        /// Sample request
+        /// GET: /api/shift
+        /// 
+        /// </remarks>
+        /// <response code="200">Return a list of Shifts</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesDefaultResponseType]
         public async Task<ActionResult<IEnumerable<ShiftDto>>> GetShifts()
         {
-            return await _context.Shifts
-                .Include(s => s.Employee) // Include the related Employee entity
-                .Select(s => ShiftMapper.MapToDto(s))
-                .ToListAsync();
+            var shifts = await _shiftService.GetShifts();
+            return new ActionResult<IEnumerable<ShiftDto>>(shifts);
         }
 
-        // GET: api/Shifts/5
+        /// <summary>
+        /// Return a Shift
+        /// </summary>
+        /// <param name="id">The unique identifier of the shift to be retrieved.</param>
+        /// <returns> Shift </returns>
+        /// <remarks>
+        /// 
+        /// Sample request
+        /// GET: api/Shifts/5
+        /// 
+        /// </remarks>
+        /// <response code="200">Return a Shift</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesDefaultResponseType]
         public async Task<ActionResult<ShiftDto>> GetShift(int id)
         {
-            var shift = await _context.Shifts
-                .Include(s => s.Employee)
-                .Where(s => s.ShiftId == id)
-                .FirstOrDefaultAsync();
+            var shift = await _shiftService.GetShiftById(id);
 
             if (shift == null)
             {
                 return NotFound();
             }
 
-            return ShiftMapper.MapToDto(shift);
+            return shift;
         }
 
-        // PUT: api/Shifts/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Updates a Shift
+        /// </summary>
+        /// <param name="id">The unique identifier of the shift to be updated.</param>
+        /// <returns> No Content if it's successful </returns>
+        /// <remarks>
+        /// 
+        /// Sample request
+        /// PUT: api/Shifts/5
+        /// 
+        /// </remarks>
+        /// <response code="204">Return No Content if it's successful</response>
         [HttpPut("{id}")]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Put))]
         public async Task<IActionResult> PutShift(int id, Shift shift)
         {
             if (id != shift.ShiftId)
@@ -59,89 +84,57 @@ namespace ShiftsLogger.Controllers
                 return BadRequest();
             }
 
-            var employee = await _context.Employees.FindAsync(shift.EmployeeId);
-            if (employee == null)
-            {
-                return NotFound($"Employee with ID {shift.EmployeeId} not found.");
-            }
-            shift.Employee = await _context.Employees.Where(e => e.EmployeeId == shift.EmployeeId).FirstOrDefaultAsync();
-
-            _context.Employees.Attach(shift.Employee);
-
-            if (!EndHigherThanStart(shift))
-            {
-                return StatusCode(StatusCodes.Status422UnprocessableEntity,
-                    new { Error = "The End time must be higher than Start time." });
-            }
-
-            _context.Entry(shift).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await _shiftService.UpdateShift(shift);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (!ShiftExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                Console.WriteLine($"Error: {ex.Message}");
+                return BadRequest();
             }
 
             return NoContent();
         }
 
-        // POST: api/Shifts
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Creates a Shift
+        /// </summary>
+        /// <returns> Created Shift </returns>
+        /// <remarks>
+        /// 
+        /// Sample request
+        /// POST: api/Shifts
+        /// 
+        /// </remarks>
+        /// <response code="201">Return Created Shift</response>
         [HttpPost]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
         public async Task<ActionResult<Shift>> PostShift(Shift shift)
         {
-            var employee = await _context.Employees.FindAsync(shift.EmployeeId);
-            if (employee == null)
-            {
-                return NotFound($"Employee with ID {shift.EmployeeId} not found.");
-            }
-
-            if (!EndHigherThanStart(shift))
-            {
-                return StatusCode(StatusCodes.Status422UnprocessableEntity,
-                    new { Error = "The End time must be higher than Start time." });
-            }
-
-            _context.Shifts.Add(shift);
-            await _context.SaveChangesAsync();
+            await _shiftService.InsertShift(shift);
 
             return CreatedAtAction(nameof(GetShift), new { id = shift.ShiftId }, shift);
         }
 
-        // DELETE: api/Shifts/5
+        /// <summary>
+        /// Deletes a Shift
+        /// </summary>
+        /// <param name="id">The unique identifier of the shift to be deleted.</param>
+        /// <returns> No Content if it's successful </returns>
+        /// <remarks>
+        /// 
+        /// Sample request
+        /// DELETE: api/Shifts/5
+        /// 
+        /// </remarks>
+        /// <response code="200">Return No Content is it's successful</response>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteShift(int id)
         {
-            var shift = await _context.Shifts.FindAsync(id);
-            if (shift == null)
-            {
-                return NotFound();
-            }
-
-            _context.Shifts.Remove(shift);
-            await _context.SaveChangesAsync();
+            await _shiftService.DeleteShiftById(id);
 
             return NoContent();
-        }
-
-        private bool ShiftExists(int id)
-        {
-            return _context.Shifts.Any(e => e.ShiftId == id);
-        }
-
-        private bool EndHigherThanStart(Shift shift)
-        {
-            return shift.End > shift.Start;
         }
     }
 }
