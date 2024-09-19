@@ -1,113 +1,139 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ShiftsLogger;
 
-namespace ShiftsLogger.Controllers
+namespace ShiftsLogger;
+
+[Produces("application/json")]
+[Route("api/[controller]")]
+[ApiController]
+public class EmployeesController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class EmployeesController : ControllerBase
+    private readonly EmployeeService _employeeService;
+
+    public EmployeesController(ShiftContext context, EmployeeService employeeService)
     {
-        private readonly ShiftContext _context;
+        _employeeService = employeeService;
+    }
 
-        public EmployeesController(ShiftContext context)
+    /// <summary>
+    /// Return a list of Employees
+    /// </summary>
+    /// <returns> A list of Employees </returns>
+    /// <remarks>
+    /// 
+    /// Sample request
+    /// GET: /api/employees
+    /// 
+    /// </remarks>
+    /// <response code="200">Return a list of Employees</response>
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesDefaultResponseType]
+    public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetEmployees()
+    {
+        var employees = await _employeeService.GetEmployees();
+        return new ActionResult<IEnumerable<EmployeeDto>>(employees);
+    }
+
+    /// <summary>
+    /// Return an Employee
+    /// </summary>
+    /// <param name="id">The unique identifier of the employee to be retrieved.</param>
+    /// <returns> Employee </returns>
+    /// <remarks>
+    /// 
+    /// Sample request
+    /// GET: /api/employees/1
+    /// 
+    /// </remarks>
+    /// <response code="200">Return an Employee</response>
+    [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesDefaultResponseType]
+    public async Task<ActionResult<EmployeeDto>> GetEmployee(int id)
+    {
+        var employee = await _employeeService.GetEmployeeById(id);
+
+        if (employee == null)
         {
-            _context = context;
+            return NotFound();
+        }
+        
+        return employee!;
+    }
+
+    /// <summary>
+    /// Updates an Employee
+    /// </summary>
+    /// <param name="id">The unique identifier of the employee to be updated.</param>
+    /// <returns> No Content if it's successful </returns>
+    /// <remarks>
+    /// 
+    /// Sample request
+    /// PUT: /api/employees/1
+    /// 
+    /// </remarks>
+    /// <response code="204">Return No Content if it's successful</response>
+    [HttpPut("{id}")]
+    [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Put))]
+    public async Task<IActionResult> PutEmployee(int id, Employee employee)
+    {
+        if (id != employee.EmployeeId)
+        {
+            return BadRequest();
         }
 
-        // GET: api/Employees
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetEmployees()
+        try
         {
-            return await _context.Employees
-                .Include(e => e.Shifts)
-                .Select(e => EmployeeMapper.MapToDto(e))
-                .ToListAsync();
-        }
-
-        // GET: api/Employees/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<EmployeeDto>> GetEmployee(int id)
-        {
-            var employee = await _context.Employees
-                .Include(e => e.Shifts)
-                .Where(e => e.EmployeeId == id)
-                .FirstOrDefaultAsync();
-
-            if (employee == null)
-            {
-                return NotFound();
-            }
-
-            return EmployeeMapper.MapToDto(employee);
-        }
-
-        // PUT: api/Employees/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutEmployee(int id, Employee employee)
-        {
-            if (id != employee.EmployeeId)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(employee).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!EmployeeExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            await _employeeService.UpdateEmployee(employee);
 
             return NoContent();
         }
-
-        // POST: api/Employees
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Employee>> PostEmployee(Employee employee)
+        catch (Exception ex)
         {
-            _context.Employees.Add(employee);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetEmployee), new { id = employee.EmployeeId }, employee);
+            Console.WriteLine($"Error: {ex.Message}");
+            return BadRequest();
         }
+    }
 
-        // DELETE: api/Employees/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEmployee(int id)
-        {
-            var employee = await _context.Employees.FindAsync(id);
-            if (employee == null)
-            {
-                return NotFound();
-            }
+    /// <summary>
+    /// Creates an Employee
+    /// </summary>
+    /// <returns> Created Employee </returns>
+    /// <remarks>
+    /// 
+    /// Sample request
+    /// POST: /api/employees
+    /// 
+    /// </remarks>
+    /// <response code="201">Return Created Employee</response>
+    [HttpPost]
+    [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+    public async Task<ActionResult<Employee>> PostEmployee(Employee employee)
+    {
+        await _employeeService.InsertEmployee(employee);
 
-            _context.Employees.Remove(employee);
-            await _context.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetEmployee), new { id = employee.EmployeeId }, employee);
+    }
 
-            return NoContent();
-        }
+    /// <summary>
+    /// Deletes an Employee
+    /// </summary>
+    /// <param name="id">The unique identifier of the employee to be deleted.</param>
+    /// <returns> No Content if it's successful </returns>
+    /// <remarks>
+    /// 
+    /// Sample request
+    /// DELETE: /api/employees/1
+    /// 
+    /// </remarks>
+    /// <response code="200">Return No Content is it's successful</response>
+    [HttpDelete("{id}")]
+    [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Delete))]
+    public async Task<IActionResult> DeleteEmployee(int id)
+    {
+        await _employeeService.DeleteEmployeeById(id);
 
-        private bool EmployeeExists(int id)
-        {
-            return _context.Employees.Any(e => e.EmployeeId == id);
-        }
+        return NoContent();
     }
 }

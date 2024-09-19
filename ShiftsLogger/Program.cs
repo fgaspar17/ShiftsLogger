@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Rewrite;
+using Microsoft.EntityFrameworkCore;
 using ShiftsLogger;
+using ShiftsLogger.Services;
+using System.Reflection;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,10 +16,27 @@ builder.Services.AddControllers();
     //});
 
 
-builder.Services.AddDbContext<ShiftContext>();
+builder.Services.AddDbContext<ShiftContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ShiftContext")));
+
+builder.Services.AddScoped<EmployeeService>();
+builder.Services.AddScoped<ShiftService>();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(s =>
+{
+    s.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Version = "V1",
+        Title = "Shift Logger API",
+        Description = "API for managing employee shifts"
+    });
+
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    s.IncludeXmlComments(xmlPath);
+});
 
 var app = builder.Build();
 
