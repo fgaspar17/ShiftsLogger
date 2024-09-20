@@ -25,5 +25,19 @@ public class ShiftContext : DbContext
             .WithMany(e => e.Shifts)
             .HasForeignKey(s => s.EmployeeId)
             .IsRequired();
+
+        builder.Entity<Employee>()
+        .HasData(
+            new Employee { EmployeeId = 1, Name = "John" },
+            new Employee { EmployeeId = 2, Name = "Albert" }
+        );
+
+        DateTime seedStartDate = new(2024, 9, 20, 8, 0, 0);
+
+        builder.Entity<Shift>()
+            .HasData(
+                new Shift { ShiftId = 1, Start = seedStartDate, End = seedStartDate.AddMinutes(120), EmployeeId = 1 },
+                new Shift { ShiftId = 2, Start = seedStartDate.AddMinutes(60), End = seedStartDate.AddMinutes(180), EmployeeId = 2 }
+            );
     }
 }

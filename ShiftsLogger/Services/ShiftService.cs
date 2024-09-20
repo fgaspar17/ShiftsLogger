@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace ShiftsLogger.Services
 {
@@ -8,9 +7,9 @@ namespace ShiftsLogger.Services
     {
         public readonly ShiftContext _context;
 
-        public ShiftService(ShiftContext context) 
-        { 
-            _context = context; 
+        public ShiftService(ShiftContext context)
+        {
+            _context = context;
         }
 
         public async Task<IEnumerable<ShiftDto>> GetShifts()

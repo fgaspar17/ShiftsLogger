@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ShiftsLogger;
 
@@ -58,7 +57,7 @@ public class EmployeesController : ControllerBase
         {
             return NotFound();
         }
-        
+
         return employee!;
     }
 

@@ -3,17 +3,16 @@ using Microsoft.EntityFrameworkCore;
 using ShiftsLogger;
 using ShiftsLogger.Services;
 using System.Reflection;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
-    //.AddJsonOptions(options =>
-    //{
-    //    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    //});
+//.AddJsonOptions(options =>
+//{
+//    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+//});
 
 
 builder.Services.AddDbContext<ShiftContext>(options =>
