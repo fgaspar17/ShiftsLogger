@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
+using ShiftsLoggerLibrary;
 using ShiftsLoggerUI;
-
 
 var builder = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
