@@ -6,8 +6,11 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShiftsLogger", "ShiftsLogger\ShiftsLogger.csproj", "{E9AF627A-D04C-4450-AF55-939E72F1A199}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShiftsLoggerUI", "ShiftLoggerUI\ShiftsLoggerUI.csproj", "{3244FCC6-D02B-4DA4-94D7-B787080728F4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E9AF627A-D04C-4450-AF55-939E72F1A199} = {E9AF627A-D04C-4450-AF55-939E72F1A199}
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShiftsLoggerLibrary", "ShiftsLoggerLibrary\ShiftsLoggerLibrary.csproj", "{7A1A6E0F-EC30-47A2-97CE-B0657956F38F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShiftsLoggerLibrary", "ShiftsLoggerLibrary\ShiftsLoggerLibrary.csproj", "{7A1A6E0F-EC30-47A2-97CE-B0657956F38F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

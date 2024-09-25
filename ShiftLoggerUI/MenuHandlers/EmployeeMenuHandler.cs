@@ -1,4 +1,5 @@
-﻿using Spectre.Console;
+﻿using ShiftsLoggerUI;
+using Spectre.Console;
 
 namespace ShiftLoggerUI;
 
@@ -16,12 +17,16 @@ public class EmployeeMenuHandler
             case EmployeeMenuOptions.Back:
                 return false;
             case EmployeeMenuOptions.CreateEmployee:
+                EmployeeService.CreateEmployee();
                 break;
             case EmployeeMenuOptions.UpdateEmployee:
+                EmployeeService.UpdateEmployee();
                 break;
             case EmployeeMenuOptions.DeleteEmployee:
+                EmployeeService.DeleteEmployee();
                 break;
             case EmployeeMenuOptions.ShowEmployees:
+                EmployeeService.ShowEmployees();
                 break;
             default:
                 AnsiConsole.WriteLine($"Unknow option: {option}");
