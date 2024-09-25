@@ -24,7 +24,8 @@ and SQL Server Express LocalDB.
   You should add an initial migration and update the database first.
 
 - Console-based UI to navigate the menus
-  - images
+  - ![image](https://github.com/user-attachments/assets/683792bc-f2bd-474c-ba0a-475780e756ee)
+  - ![image](https://github.com/user-attachments/assets/7239de8f-674c-4b73-ba7e-384b07a8cb8f)
 
 - CRUD operations
 
@@ -32,8 +33,11 @@ and SQL Server Express LocalDB.
   - From the Employee Menu, you can create, update, show, or delete employees.
   To choose an option, you make use of arrow keys and enter.
   - Inputs are validated. For start and end times you can check the given examples.
-  - image
+  - ![image](https://github.com/user-attachments/assets/1ecf1d84-e6fb-4911-b3af-de329c1d6420)
   - You can cancel an operation by entering the string from the configuration file.
+
+- Swagger Documentation
+  - ![image](https://github.com/user-attachments/assets/abcf4f69-507c-4727-9330-fb61da1d9db3)
 
 ## Challenges
 
